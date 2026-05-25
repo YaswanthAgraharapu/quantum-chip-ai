@@ -278,23 +278,114 @@ function MetalWaveCanvas({ design }) {
   }
 
   const qubitLabels = design.nodes.filter((node) => node.type === "qubit").map((node) => node.label);
-  const leftLabel = qubitLabels[0] ?? "Q1";
-  const rightLabel = qubitLabels[1] ?? "Q2";
-  const topLabel = qubitLabels[2] ?? "Q3";
-  const bottomLabel = qubitLabels[3] ?? "Q4";
+  const topology = design.topology;
+  const visibleLabels = qubitLabels.slice(0, Math.min(qubitLabels.length, 8));
 
-  const meanderPath = [
-    "M 145 250",
-    "L 230 250",
-    "C 230 205, 270 205, 270 250",
-    "C 270 295, 310 295, 310 250",
-    "C 310 205, 350 205, 350 250",
-    "C 350 295, 390 295, 390 250",
-    "C 390 205, 430 205, 430 250",
-    "C 430 295, 470 295, 470 250",
-    "C 470 205, 510 205, 510 250",
-    "L 595 250",
-  ].join(" ");
+  function Pad({ label, x, y, compact = false }) {
+    const width = compact ? 62 : 74;
+    const height = compact ? 48 : 54;
+    return (
+      <g className="wave-pad" filter="url(#padShadow)">
+        <rect x={x - width / 2} y={y - height / 2} width={width} height={height} rx="4" />
+        <text x={x} y={y + 6}>{label}</text>
+      </g>
+    );
+  }
+
+  const meshPositions = visibleLabels.map((label, index) => ({
+    label,
+    x: 190 + (index % 4) * 120,
+    y: 155 + Math.floor(index / 4) * 145,
+  }));
+
+  const ringPositions = visibleLabels.map((label, index) => {
+    const angle = (2 * Math.PI * index) / visibleLabels.length - Math.PI / 2;
+    return {
+      label,
+      x: 370 + 210 * Math.cos(angle),
+      y: 250 + 150 * Math.sin(angle),
+    };
+  });
+
+  const starPositions = visibleLabels.slice(1).map((label, index) => {
+    const angle = (2 * Math.PI * index) / Math.max(1, visibleLabels.length - 1) - Math.PI / 2;
+    return {
+      label,
+      x: 370 + 210 * Math.cos(angle),
+      y: 250 + 150 * Math.sin(angle),
+    };
+  });
+
+  const linearPositions = visibleLabels.map((label, index) => ({
+    label,
+    x: 105 + index * (530 / Math.max(1, visibleLabels.length - 1)),
+    y: index % 2 === 0 ? 188 : 312,
+  }));
+
+  function renderMesh() {
+    return (
+      <>
+        <path d="M 120 250 C 170 190, 220 310, 270 250 C 320 190, 370 310, 420 250 C 470 190, 520 310, 620 250" className="wave-line" />
+        {meshPositions.map((node, index) => (
+          <g key={node.label}>
+            <line x1={node.x} y1={node.y} x2={node.x} y2="250" className="wave-coupler" />
+            {index > 0 && index % 4 !== 0 && (
+              <line x1={meshPositions[index - 1].x} y1={node.y} x2={node.x} y2={node.y} className="wave-coupler faint" />
+            )}
+            <Pad label={node.label} x={node.x} y={node.y} compact />
+          </g>
+        ))}
+      </>
+    );
+  }
+
+  function renderStar() {
+    return (
+      <>
+        <Pad label={visibleLabels[0] ?? "Q1"} x={370} y={250} />
+        {starPositions.map((node) => (
+          <g key={node.label}>
+            <path d={`M 370 250 C ${(370 + node.x) / 2} ${250}, ${(370 + node.x) / 2} ${node.y}, ${node.x} ${node.y}`} className="wave-coupler" />
+            <Pad label={node.label} x={node.x} y={node.y} compact />
+          </g>
+        ))}
+        <circle cx="370" cy="250" r="92" className="wave-ring-bus" />
+      </>
+    );
+  }
+
+  function renderRing() {
+    return (
+      <>
+        <ellipse cx="370" cy="250" rx="230" ry="165" className="wave-ring-bus" />
+        <ellipse cx="370" cy="250" rx="160" ry="105" className="wave-ring-bus inner" />
+        {ringPositions.map((node, index) => {
+          const next = ringPositions[(index + 1) % ringPositions.length];
+          return (
+            <g key={node.label}>
+              <path d={`M ${node.x} ${node.y} C ${(node.x + next.x) / 2} ${node.y}, ${(node.x + next.x) / 2} ${next.y}, ${next.x} ${next.y}`} className="wave-coupler faint" />
+              <Pad label={node.label} x={node.x} y={node.y} compact />
+            </g>
+          );
+        })}
+      </>
+    );
+  }
+
+  function renderLinear() {
+    return (
+      <>
+        <path d="M 90 250 C 150 205, 210 295, 270 250 C 330 205, 390 295, 450 250 C 510 205, 570 295, 650 250" className="wave-line" />
+        {linearPositions.map((node, index) => (
+          <g key={node.label}>
+            <line x1={node.x} y1={node.y} x2={node.x} y2="250" className="wave-coupler" />
+            {index > 0 && <line x1={linearPositions[index - 1].x} y1="250" x2={node.x} y2="250" className="wave-coupler faint" />}
+            <Pad label={node.label} x={node.x} y={node.y} compact />
+          </g>
+        ))}
+      </>
+    );
+  }
 
   return (
     <svg className="wave-canvas" viewBox="0 0 740 500" role="img" aria-label="Qiskit Metal wave resonator layout">
@@ -318,31 +409,10 @@ function MetalWaveCanvas({ design }) {
         ))}
       </g>
 
-      <path d={meanderPath} className="wave-line" />
-
-      <g className="wave-pad" filter="url(#padShadow)">
-        <rect x="64" y="220" width="84" height="60" rx="4" />
-        <line x1="148" y1="250" x2="190" y2="250" />
-        <text x="106" y="256">{leftLabel}</text>
-      </g>
-
-      <g className="wave-pad" filter="url(#padShadow)">
-        <rect x="594" y="220" width="84" height="60" rx="4" />
-        <line x1="552" y1="250" x2="594" y2="250" />
-        <text x="636" y="256">{rightLabel}</text>
-      </g>
-
-      <g className="wave-pad small" filter="url(#padShadow)">
-        <rect x="332" y="72" width="76" height="66" rx="4" />
-        <line x1="370" y1="138" x2="370" y2="205" />
-        <text x="370" y="111">{topLabel}</text>
-      </g>
-
-      <g className="wave-pad small" filter="url(#padShadow)">
-        <rect x="332" y="356" width="76" height="66" rx="4" />
-        <line x1="370" y1="295" x2="370" y2="356" />
-        <text x="370" y="395">{bottomLabel}</text>
-      </g>
+      {topology === "star" && renderStar()}
+      {topology === "ring" && renderRing()}
+      {topology === "linear" && renderLinear()}
+      {topology === "mesh" && renderMesh()}
 
       <text x="48" y="444" className="wave-axis-label">Qiskit Metal resonator preview</text>
       <text x="598" y="444" className="wave-axis-label">{design.topology} coupling</text>
