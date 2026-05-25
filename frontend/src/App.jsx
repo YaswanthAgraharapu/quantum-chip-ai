@@ -278,23 +278,25 @@ function MetalWaveCanvas({ design }) {
   }
 
   const qubitLabels = design.nodes.filter((node) => node.type === "qubit").map((node) => node.label);
-  const mainPads = [
-    { label: qubitLabels[0] ?? "Q1", x: 120, y: 250, w: 82, h: 54, lead: "right" },
-    { label: qubitLabels[1] ?? "Q2", x: 620, y: 250, w: 82, h: 54, lead: "left" },
-    { label: qubitLabels[2] ?? "Q3", x: 370, y: 92, w: 72, h: 66, lead: "down" },
-    { label: qubitLabels[3] ?? "Q4", x: 370, y: 402, w: 72, h: 66, lead: "up" },
+  const fallbackLabels = Array.from({ length: design.qubits }, (_, index) => `Q${index + 1}`);
+  const labels = (qubitLabels.length ? qubitLabels : fallbackLabels).slice(0, 8);
+  const padSlots = [
+    { x: 104, y: 250, w: 72, h: 46, tx: 206, ty: 250 },
+    { x: 636, y: 250, w: 72, h: 46, tx: 534, ty: 250 },
+    { x: 252, y: 112, w: 64, h: 52, tx: 252, ty: 176 },
+    { x: 370, y: 92, w: 64, h: 52, tx: 370, ty: 176 },
+    { x: 488, y: 112, w: 64, h: 52, tx: 488, ty: 176 },
+    { x: 252, y: 390, w: 64, h: 52, tx: 252, ty: 324 },
+    { x: 370, y: 408, w: 64, h: 52, tx: 370, ty: 324 },
+    { x: 488, y: 390, w: 64, h: 52, tx: 488, ty: 324 },
   ];
+  const mainPads = labels.map((label, index) => ({ label, ...padSlots[index] }));
 
-  function Pad({ label, x, y, w, h, lead }) {
+  function Pad({ label, x, y, w, h, tx, ty }) {
     return (
       <g className="wave-pad reference-pad" filter="url(#padShadow)">
-        {lead === "right" && <line x1={x + w / 2} y1={y} x2="205" y2="250" />}
-        {lead === "left" && <line x1="535" y1="250" x2={x - w / 2} y2={y} />}
-        {lead === "down" && <line x1={x} y1={y + h / 2} x2="370" y2="172" />}
-        {lead === "up" && <line x1="370" y1="328" x2={x} y2={y - h / 2} />}
+        <line x1={x} y1={y} x2={tx} y2={ty} />
         <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx="4" />
-        <line x1={x - w * 0.32} y1={y - h * 0.18} x2={x + w * 0.32} y2={y + h * 0.18} className="pad-crossline" />
-        <line x1={x - w * 0.25} y1={y + h * 0.2} x2={x + w * 0.25} y2={y - h * 0.2} className="pad-crossline" />
         <text x={x} y={y + 6}>{label}</text>
       </g>
     );
