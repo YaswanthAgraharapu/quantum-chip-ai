@@ -187,6 +187,14 @@ def recommendation_reason(topology: Topology, qubits: int) -> str:
 
 
 def generate_qiskit_metal_code(topology: Topology, qubits: int, shared_resonator: bool) -> str:
+    qubit_lines = "\n".join(
+        [
+            f'Q{index + 1} = TransmonPocket(design, "Q{index + 1}", options=dict(pos_x="{index * 1.2:.1f}mm", pos_y="0mm"))'
+            for index in range(qubits)
+        ]
+    )
+    qubit_names = ", ".join([f"Q{index + 1}" for index in range(qubits)])
+
     return f'''from qiskit_metal import designs
 from qiskit_metal.qlibrary.qubits.transmon_pocket import TransmonPocket
 
@@ -197,16 +205,9 @@ design.overwrite_enabled = True
 # Qubits: {qubits}
 # Shared resonator: {shared_resonator}
 
-qubits = []
-for index in range({qubits}):
-    x_position = f"{{index * 1.2}}mm"
-    qubits.append(
-        TransmonPocket(
-            design,
-            f"Q{{index + 1}}",
-            options=dict(pos_x=x_position, pos_y="0mm")
-        )
-    )
+{qubit_lines}
+
+qubits = [{qubit_names}]
 
 # Next integration step:
 # Add RouteMeander / CPW routes using the generated edge list from this API response.

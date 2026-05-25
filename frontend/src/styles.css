@@ -45,7 +45,7 @@ input {
   display: grid;
   place-items: center;
   color: #ffffff;
-  background: #08768a;
+  background: #0f766e;
   border-radius: 8px;
 }
 
@@ -72,11 +72,11 @@ h2 {
 
 .requirements-form {
   padding: 18px;
-  color: #d9e4ef;
-  background: #0d1424;
-  border: 1px solid #1f3152;
+  color: #172033;
+  background: #ffffff;
+  border: 1px solid #cfe5dc;
   border-radius: 10px;
-  box-shadow: 0 14px 30px rgba(16, 24, 40, 0.12);
+  box-shadow: 0 14px 30px rgba(15, 118, 110, 0.08);
 }
 
 .form-kicker {
@@ -85,9 +85,9 @@ h2 {
   gap: 8px;
   margin: -18px -18px 18px;
   padding: 16px 18px;
-  color: #14d8ff;
-  background: #14213a;
-  border-bottom: 1px solid #253957;
+  color: #0f766e;
+  background: #edfdfa;
+  border-bottom: 1px solid #cfe5dc;
   border-radius: 10px 10px 0 0;
   font-size: 13px;
   font-weight: 900;
@@ -98,7 +98,7 @@ h2 {
 .field-label {
   display: block;
   margin: 16px 0 8px;
-  color: #8f9caf;
+  color: #667085;
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 1.4px;
@@ -108,9 +108,9 @@ h2 {
 .dark-textarea,
 .dark-select {
   width: 100%;
-  color: #d9e4ef;
-  background: #070d19;
-  border: 1px solid #213557;
+  color: #172033;
+  background: #ffffff;
+  border: 1px solid #cbd5df;
   border-radius: 8px;
   outline: none;
 }
@@ -131,8 +131,8 @@ h2 {
 
 .dark-textarea:focus,
 .dark-select:focus {
-  border-color: #00d9ff;
-  box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.13);
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
 }
 
 .two-col {
@@ -150,13 +150,13 @@ h2 {
 }
 
 .slider-row strong {
-  color: #00d9ff;
+  color: #0f766e;
   text-align: right;
 }
 
 input[type="range"] {
   width: 100%;
-  accent-color: #00d9ff;
+  accent-color: #0f766e;
 }
 
 .qubit-card-grid {
@@ -170,9 +170,9 @@ input[type="range"] {
   display: grid;
   place-items: center;
   gap: 7px;
-  color: #95a3b7;
-  background: #070d19;
-  border: 1px solid #213557;
+  color: #667085;
+  background: #ffffff;
+  border: 1px solid #cbd5df;
   border-radius: 8px;
   cursor: pointer;
 }
@@ -183,10 +183,10 @@ input[type="range"] {
 }
 
 .qubit-choice.active {
-  color: #00d9ff;
-  background: #082235;
-  border-color: #00d9ff;
-  box-shadow: inset 0 0 0 1px rgba(0, 217, 255, 0.45);
+  color: #0f766e;
+  background: #edfdfa;
+  border-color: #0f766e;
+  box-shadow: inset 0 0 0 1px rgba(15, 118, 110, 0.28);
 }
 
 .requirements-generate {
@@ -197,8 +197,8 @@ input[type="range"] {
   justify-content: center;
   gap: 9px;
   margin-top: 18px;
-  color: #06121f;
-  background: #00d9ff;
+  color: #ffffff;
+  background: #0f766e;
   border: 0;
   border-radius: 8px;
   cursor: pointer;

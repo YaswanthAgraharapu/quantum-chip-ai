@@ -134,6 +134,11 @@ function buildLocalDesign(topology, qubits, hasSharedResonator) {
   const topologyBonus = { mesh: 22, ring: 16, star: 10, linear: 6 }[topology];
   const scalability = Math.min(100, 50 + topologyBonus + qubits * 2);
   const efficiency = Math.max(30, Math.min(98, Math.round(scalability - complexity * 0.35 + 20)));
+  const qiskitQubitLines = Array.from(
+    { length: qubits },
+    (_, index) =>
+      `Q${index + 1} = TransmonPocket(design, "Q${index + 1}", options=dict(pos_x="${(index * 1.2).toFixed(1)}mm", pos_y="0mm"))`
+  ).join("\n");
 
   return {
     id: `${topology}-${qubits}`,
@@ -159,15 +164,9 @@ design.overwrite_enabled = True
 # Qubits: ${qubits}
 # Shared resonator: ${hasSharedResonator}
 
-qubits = []
-for index in range(${qubits}):
-    qubits.append(
-        TransmonPocket(
-            design,
-            f"Q{index + 1}",
-            options=dict(pos_x=f"{index * 1.2}mm", pos_y="0mm")
-        )
-    )
+${qiskitQubitLines}
+
+qubits = [${Array.from({ length: qubits }, (_, index) => `Q${index + 1}`).join(", ")}]
 `,
   };
 }
