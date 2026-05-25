@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import axios from "axios";
-import { Activity, Bot, Cpu, Download, GitCompare, Play, Send, Sparkles, UserRound } from "lucide-react";
+import { Activity, Bot, Box, Cpu, Diamond, Download, GitCompare, Grid2X2, Hexagon, Play, Plus, Radio, Send, Square, Sparkles, UserRound } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -20,6 +20,15 @@ const quickPrompts = [
   "Create a 4 qubit ring topology with shared resonator",
   "Design an 8 qubit mesh chip with low routing density",
   "Build a 6 qubit star topology and explain bottlenecks",
+];
+
+const qubitFamilies = [
+  { id: "transmon", label: "Transmon", icon: Hexagon },
+  { id: "fluxonium", label: "Fluxonium", icon: Diamond },
+  { id: "xmon", label: "Xmon", icon: Plus },
+  { id: "concentric", label: "Concentric", icon: Radio },
+  { id: "gatemon", label: "Gatemon", icon: Square },
+  { id: "squid loop", label: "SQUID Loop", icon: Grid2X2 },
 ];
 
 function extractQubits(text) {
@@ -258,6 +267,101 @@ function ChipCanvas({ design }) {
   );
 }
 
+function MetalWaveCanvas({ design }) {
+  if (!design) {
+    return (
+      <div className="empty-state compact">
+        <Sparkles size={24} />
+        <p>Qiskit Metal-style wave layout will appear here.</p>
+      </div>
+    );
+  }
+
+  const qubitLabels = design.nodes.filter((node) => node.type === "qubit").map((node) => node.label);
+  const leftLabel = qubitLabels[0] ?? "Q1";
+  const rightLabel = qubitLabels[1] ?? "Q2";
+  const topLabel = qubitLabels[2] ?? "Q3";
+  const bottomLabel = qubitLabels[3] ?? "Q4";
+
+  const meanderPath = [
+    "M 145 250",
+    "L 230 250",
+    "C 230 205, 270 205, 270 250",
+    "C 270 295, 310 295, 310 250",
+    "C 310 205, 350 205, 350 250",
+    "C 350 295, 390 295, 390 250",
+    "C 390 205, 430 205, 430 250",
+    "C 430 295, 470 295, 470 250",
+    "C 470 205, 510 205, 510 250",
+    "L 595 250",
+  ].join(" ");
+
+  return (
+    <svg className="wave-canvas" viewBox="0 0 740 500" role="img" aria-label="Qiskit Metal wave resonator layout">
+      <defs>
+        <filter id="padShadow">
+          <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#506070" floodOpacity="0.26" />
+        </filter>
+        <linearGradient id="padFill" x1="0" x2="1">
+          <stop offset="0%" stopColor="#b8c8d2" />
+          <stop offset="100%" stopColor="#dfe7eb" />
+        </linearGradient>
+      </defs>
+
+      <rect x="30" y="24" width="680" height="430" rx="8" fill="#f7f7f4" stroke="#cfd7dc" />
+      <g className="axis-grid">
+        {Array.from({ length: 7 }).map((_, index) => (
+          <line key={`x-${index}`} x1={90 + index * 90} y1="64" x2={90 + index * 90} y2="416" />
+        ))}
+        {Array.from({ length: 5 }).map((_, index) => (
+          <line key={`y-${index}`} x1="80" y1={90 + index * 70} x2="660" y2={90 + index * 70} />
+        ))}
+      </g>
+
+      <path d={meanderPath} className="wave-line" />
+
+      <g className="wave-pad" filter="url(#padShadow)">
+        <rect x="64" y="220" width="84" height="60" rx="4" />
+        <line x1="148" y1="250" x2="190" y2="250" />
+        <text x="106" y="256">{leftLabel}</text>
+      </g>
+
+      <g className="wave-pad" filter="url(#padShadow)">
+        <rect x="594" y="220" width="84" height="60" rx="4" />
+        <line x1="552" y1="250" x2="594" y2="250" />
+        <text x="636" y="256">{rightLabel}</text>
+      </g>
+
+      <g className="wave-pad small" filter="url(#padShadow)">
+        <rect x="332" y="72" width="76" height="66" rx="4" />
+        <line x1="370" y1="138" x2="370" y2="205" />
+        <text x="370" y="111">{topLabel}</text>
+      </g>
+
+      <g className="wave-pad small" filter="url(#padShadow)">
+        <rect x="332" y="356" width="76" height="66" rx="4" />
+        <line x1="370" y1="295" x2="370" y2="356" />
+        <text x="370" y="395">{bottomLabel}</text>
+      </g>
+
+      <text x="48" y="444" className="wave-axis-label">Qiskit Metal resonator preview</text>
+      <text x="598" y="444" className="wave-axis-label">{design.topology} coupling</text>
+    </svg>
+  );
+}
+
+function OutputCard({ title, subtitle, children }) {
+  return (
+    <div className="output-card">
+      <div className="output-card-header">
+        <span>{title}</span>
+        <strong>{subtitle}</strong>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function MetricCard({ label, value, icon }) {
   return (
     <div className="metric-card">
@@ -313,6 +417,16 @@ function RequirementsPanel({ result, selectedDesign }) {
 
 export default function App() {
   const [prompt, setPrompt] = useState(starterPrompt);
+  const [requirements, setRequirements] = useState({
+    description: "5-qubit transmon processor with nearest-neighbor coupling for gate fidelity above 99.5%",
+    qubits: 5,
+    connectivity: "2D Grid",
+    qubitFamily: "transmon",
+    substrate: "Sapphire (Al2O3)",
+    coupling: "Capacitive",
+    chipSize: "10 x 10",
+    frequency: 5.5,
+  });
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -338,6 +452,19 @@ export default function App() {
       Scalability: design.metrics.scalability,
     }));
   }, [result]);
+
+  function buildPromptFromRequirements(nextRequirements = requirements) {
+    const topology = nextRequirements.connectivity === "2D Grid" ? "mesh" : "ring";
+    return `Create a superconducting quantum chip with ${nextRequirements.qubits} qubits using ${nextRequirements.qubitFamily} qubits, ${topology} topology, ${nextRequirements.coupling.toLowerCase()} coupling, ${nextRequirements.substrate} substrate, ${nextRequirements.chipSize} mm chip size, target frequency ${nextRequirements.frequency} GHz. Requirement: ${nextRequirements.description}`;
+  }
+
+  function updateRequirement(key, value) {
+    setRequirements((current) => {
+      const next = { ...current, [key]: value };
+      setPrompt(buildPromptFromRequirements(next));
+      return next;
+    });
+  }
 
   async function generateDesign(nextPrompt = prompt) {
     const cleanPrompt = nextPrompt.trim();
@@ -401,6 +528,148 @@ export default function App() {
             <h1>Quantum Chip Copilot</h1>
             <p>Chat-driven Qiskit Metal architecture designer.</p>
           </div>
+        </div>
+
+        <div className="requirements-form">
+          <div className="form-kicker">
+            <Box size={14} />
+            Chip Requirements
+          </div>
+
+          <label className="field-label" htmlFor="natural-language">
+            Natural Language Description
+          </label>
+          <textarea
+            id="natural-language"
+            className="dark-textarea"
+            value={requirements.description}
+            onChange={(event) => updateRequirement("description", event.target.value)}
+          />
+
+          <div className="two-col">
+            <div>
+              <label className="field-label" htmlFor="qubit-count">
+                Number of Qubits
+              </label>
+              <div className="slider-row">
+                <input
+                  id="qubit-count"
+                  type="range"
+                  min="2"
+                  max="12"
+                  value={requirements.qubits}
+                  onChange={(event) => updateRequirement("qubits", Number(event.target.value))}
+                />
+                <strong>{requirements.qubits}</strong>
+              </div>
+            </div>
+            <div>
+              <label className="field-label" htmlFor="connectivity">
+                Connectivity
+              </label>
+              <select
+                id="connectivity"
+                className="dark-select"
+                value={requirements.connectivity}
+                onChange={(event) => updateRequirement("connectivity", event.target.value)}
+              >
+                <option>2D Grid</option>
+                <option>Nearest Neighbor</option>
+                <option>Ring Bus</option>
+              </select>
+            </div>
+          </div>
+
+          <label className="field-label">Qubit Topology</label>
+          <div className="qubit-card-grid">
+            {qubitFamilies.map((family) => {
+              const Icon = family.icon;
+              return (
+                <button
+                  key={family.id}
+                  type="button"
+                  className={requirements.qubitFamily === family.id ? "qubit-choice active" : "qubit-choice"}
+                  onClick={() => updateRequirement("qubitFamily", family.id)}
+                >
+                  <Icon size={22} />
+                  <span>{family.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="two-col">
+            <div>
+              <label className="field-label" htmlFor="substrate">
+                Substrate
+              </label>
+              <select
+                id="substrate"
+                className="dark-select"
+                value={requirements.substrate}
+                onChange={(event) => updateRequirement("substrate", event.target.value)}
+              >
+                <option>Sapphire (Al2O3)</option>
+                <option>Silicon</option>
+                <option>High-resistivity Si</option>
+              </select>
+            </div>
+            <div>
+              <label className="field-label" htmlFor="coupling">
+                Coupling Type
+              </label>
+              <select
+                id="coupling"
+                className="dark-select"
+                value={requirements.coupling}
+                onChange={(event) => updateRequirement("coupling", event.target.value)}
+              >
+                <option>Capacitive</option>
+                <option>Inductive</option>
+                <option>Resonator Bus</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="two-col">
+            <div>
+              <label className="field-label" htmlFor="chip-size">
+                Chip Size (mm)
+              </label>
+              <select
+                id="chip-size"
+                className="dark-select"
+                value={requirements.chipSize}
+                onChange={(event) => updateRequirement("chipSize", event.target.value)}
+              >
+                <option>10 x 10</option>
+                <option>12 x 12</option>
+                <option>15 x 15</option>
+              </select>
+            </div>
+            <div>
+              <label className="field-label" htmlFor="frequency">
+                Target Frequency (GHz)
+              </label>
+              <div className="slider-row">
+                <input
+                  id="frequency"
+                  type="range"
+                  min="4"
+                  max="7"
+                  step="0.1"
+                  value={requirements.frequency}
+                  onChange={(event) => updateRequirement("frequency", Number(event.target.value))}
+                />
+                <strong>{requirements.frequency}</strong>
+              </div>
+            </div>
+          </div>
+
+          <button className="requirements-generate" type="button" onClick={() => generateDesign(buildPromptFromRequirements())}>
+            <Sparkles size={18} />
+            Generate From Requirements
+          </button>
         </div>
 
         <div className="chat-window" aria-live="polite">
@@ -501,7 +770,14 @@ export default function App() {
           {selectedDesign && selectedDesign.id === result?.recommendedId && <span className="badge">Recommended</span>}
         </div>
 
-        <ChipCanvas design={selectedDesign} />
+        <div className="output-comparison">
+          <OutputCard title="Output 1" subtitle="Architecture topology graph">
+            <ChipCanvas design={selectedDesign} />
+          </OutputCard>
+          <OutputCard title="Output 2" subtitle="Qiskit Metal wave layout">
+            <MetalWaveCanvas design={selectedDesign} />
+          </OutputCard>
+        </div>
 
         {selectedDesign && (
           <div className="dashboard-grid">

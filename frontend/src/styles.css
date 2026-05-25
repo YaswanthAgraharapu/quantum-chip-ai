@@ -10,7 +10,9 @@ body {
 }
 
 button,
-textarea {
+textarea,
+select,
+input {
   font: inherit;
 }
 
@@ -66,6 +68,141 @@ h2 {
   color: #667085;
   margin-top: 5px;
   line-height: 1.4;
+}
+
+.requirements-form {
+  padding: 18px;
+  color: #d9e4ef;
+  background: #0d1424;
+  border: 1px solid #1f3152;
+  border-radius: 10px;
+  box-shadow: 0 14px 30px rgba(16, 24, 40, 0.12);
+}
+
+.form-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -18px -18px 18px;
+  padding: 16px 18px;
+  color: #14d8ff;
+  background: #14213a;
+  border-bottom: 1px solid #253957;
+  border-radius: 10px 10px 0 0;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.field-label {
+  display: block;
+  margin: 16px 0 8px;
+  color: #8f9caf;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.dark-textarea,
+.dark-select {
+  width: 100%;
+  color: #d9e4ef;
+  background: #070d19;
+  border: 1px solid #213557;
+  border-radius: 8px;
+  outline: none;
+}
+
+.dark-textarea {
+  min-height: 104px;
+  resize: vertical;
+  padding: 14px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.dark-select {
+  height: 42px;
+  padding: 0 13px;
+  font-weight: 800;
+}
+
+.dark-textarea:focus,
+.dark-select:focus {
+  border-color: #00d9ff;
+  box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.13);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.slider-row {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-row strong {
+  color: #00d9ff;
+  text-align: right;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #00d9ff;
+}
+
+.qubit-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.qubit-choice {
+  min-height: 74px;
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  color: #95a3b7;
+  background: #070d19;
+  border: 1px solid #213557;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.qubit-choice span {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.qubit-choice.active {
+  color: #00d9ff;
+  background: #082235;
+  border-color: #00d9ff;
+  box-shadow: inset 0 0 0 1px rgba(0, 217, 255, 0.45);
+}
+
+.requirements-generate {
+  width: 100%;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 18px;
+  color: #06121f;
+  background: #00d9ff;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 900;
 }
 
 .prompt-label {
@@ -298,20 +435,65 @@ textarea:focus {
 }
 
 .chip-canvas,
+.wave-canvas,
 .empty-state {
   width: 100%;
-  min-height: 420px;
   background: #ffffff;
   border: 1px solid #d8e0e7;
   border-radius: 8px;
 }
 
+.chip-canvas,
+.wave-canvas {
+  display: block;
+  min-height: 300px;
+}
+
 .empty-state {
+  min-height: 360px;
   display: grid;
   place-items: center;
   gap: 8px;
   color: #667085;
   text-align: center;
+}
+
+.empty-state.compact {
+  min-height: 320px;
+}
+
+.output-comparison {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.output-card {
+  background: #ffffff;
+  border: 1px solid #d8e0e7;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.output-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.output-card-header span {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.output-card-header strong {
+  color: #172033;
+  font-size: 15px;
 }
 
 .coupler-line {
@@ -349,6 +531,49 @@ textarea:focus {
 .node-group {
   transform-origin: center;
   animation: popIn 420ms ease both;
+}
+
+.axis-grid line {
+  stroke: #e3e7ea;
+  stroke-width: 1;
+}
+
+.wave-line {
+  fill: none;
+  stroke: #49545b;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wave-pad rect {
+  fill: url(#padFill);
+  stroke: #7d919d;
+  stroke-width: 2;
+}
+
+.wave-pad line {
+  stroke: #49545b;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.wave-pad text {
+  fill: #1f2937;
+  font-size: 20px;
+  font-weight: 900;
+  text-anchor: middle;
+}
+
+.wave-pad.small text {
+  font-size: 18px;
+}
+
+.wave-axis-label {
+  fill: #667085;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: capitalize;
 }
 
 .dashboard-grid {
@@ -511,11 +736,22 @@ pre {
     grid-template-columns: 1fr;
   }
 
+  .two-col,
   .requirements-grid {
     grid-template-columns: 1fr;
   }
 
   h2 {
     font-size: 23px;
+  }
+}
+
+@media (max-width: 520px) {
+  .output-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .qubit-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
