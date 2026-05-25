@@ -134,11 +134,28 @@ function buildLocalDesign(topology, qubits, hasSharedResonator) {
   const topologyBonus = { mesh: 22, ring: 16, star: 10, linear: 6 }[topology];
   const scalability = Math.min(100, 50 + topologyBonus + qubits * 2);
   const efficiency = Math.max(30, Math.min(98, Math.round(scalability - complexity * 0.35 + 20)));
-  const qiskitQubitLines = Array.from(
-    { length: qubits },
-    (_, index) =>
-      `Q${index + 1} = TransmonPocket(design, "Q${index + 1}", options=dict(pos_x="${(index * 1.2).toFixed(1)}mm", pos_y="0mm"))`
-  ).join("\n");
+  const qiskitPositions = Array.from({ length: qubits }, (_, index) => {
+    if (topology === "ring") {
+      const angle = (2 * Math.PI * index) / qubits;
+      return { x: 4 * Math.cos(angle), y: 4 * Math.sin(angle) };
+    }
+    if (topology === "mesh") {
+      const cols = Math.ceil(Math.sqrt(qubits));
+      return { x: (index % cols) * 1.8, y: Math.floor(index / cols) * 1.8 };
+    }
+    if (topology === "star") {
+      if (index === 0) return { x: 0, y: 0 };
+      const angle = (2 * Math.PI * (index - 1)) / Math.max(1, qubits - 1);
+      return { x: 4 * Math.cos(angle), y: 4 * Math.sin(angle) };
+    }
+    return { x: index * 1.2, y: 0 };
+  });
+  const qiskitQubitLines = qiskitPositions
+    .map(
+      (position, index) =>
+        `Q${index + 1} = TransmonPocket(design, "Q${index + 1}", options=dict(pos_x="${position.x.toFixed(1)}mm", pos_y="${position.y.toFixed(1)}mm"))`
+    )
+    .join("\n");
 
   return {
     id: `${topology}-${qubits}`,
@@ -278,16 +295,20 @@ function MetalWaveCanvas({ design }) {
 
   const qubitLabels = design.nodes.filter((node) => node.type === "qubit").map((node) => node.label);
   const fallbackLabels = Array.from({ length: design.qubits }, (_, index) => `Q${index + 1}`);
-  const labels = (qubitLabels.length ? qubitLabels : fallbackLabels).slice(0, 8);
+  const labels = (qubitLabels.length ? qubitLabels : fallbackLabels).slice(0, 12);
   const padSlots = [
     { x: 104, y: 250, w: 72, h: 46, tx: 206, ty: 250 },
     { x: 636, y: 250, w: 72, h: 46, tx: 534, ty: 250 },
-    { x: 252, y: 112, w: 64, h: 52, tx: 252, ty: 176 },
+    { x: 170, y: 116, w: 62, h: 48, tx: 230, ty: 188 },
     { x: 370, y: 92, w: 64, h: 52, tx: 370, ty: 176 },
-    { x: 488, y: 112, w: 64, h: 52, tx: 488, ty: 176 },
-    { x: 252, y: 390, w: 64, h: 52, tx: 252, ty: 324 },
+    { x: 570, y: 116, w: 62, h: 48, tx: 510, ty: 188 },
+    { x: 170, y: 384, w: 62, h: 48, tx: 230, ty: 312 },
     { x: 370, y: 408, w: 64, h: 52, tx: 370, ty: 324 },
-    { x: 488, y: 390, w: 64, h: 52, tx: 488, ty: 324 },
+    { x: 570, y: 384, w: 62, h: 48, tx: 510, ty: 312 },
+    { x: 250, y: 92, w: 58, h: 44, tx: 270, ty: 176 },
+    { x: 490, y: 92, w: 58, h: 44, tx: 470, ty: 176 },
+    { x: 250, y: 408, w: 58, h: 44, tx: 270, ty: 324 },
+    { x: 490, y: 408, w: 58, h: 44, tx: 470, ty: 324 },
   ];
   const mainPads = labels.map((label, index) => ({ label, ...padSlots[index] }));
 

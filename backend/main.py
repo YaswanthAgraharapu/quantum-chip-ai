@@ -187,10 +187,27 @@ def recommendation_reason(topology: Topology, qubits: int) -> str:
 
 
 def generate_qiskit_metal_code(topology: Topology, qubits: int, shared_resonator: bool) -> str:
+    positions = []
+    for index in range(qubits):
+        if topology == "ring":
+            angle = (2 * math.pi * index) / qubits
+            positions.append((4 * math.cos(angle), 4 * math.sin(angle)))
+        elif topology == "mesh":
+            cols = math.ceil(math.sqrt(qubits))
+            positions.append(((index % cols) * 1.8, (index // cols) * 1.8))
+        elif topology == "star":
+            if index == 0:
+                positions.append((0, 0))
+            else:
+                angle = (2 * math.pi * (index - 1)) / max(1, qubits - 1)
+                positions.append((4 * math.cos(angle), 4 * math.sin(angle)))
+        else:
+            positions.append((index * 1.2, 0))
+
     qubit_lines = "\n".join(
         [
-            f'Q{index + 1} = TransmonPocket(design, "Q{index + 1}", options=dict(pos_x="{index * 1.2:.1f}mm", pos_y="0mm"))'
-            for index in range(qubits)
+            f'Q{index + 1} = TransmonPocket(design, "Q{index + 1}", options=dict(pos_x="{x:.1f}mm", pos_y="{y:.1f}mm"))'
+            for index, (x, y) in enumerate(positions)
         ]
     )
     qubit_names = ", ".join([f"Q{index + 1}" for index in range(qubits)])
