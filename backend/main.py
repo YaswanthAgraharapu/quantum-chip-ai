@@ -39,6 +39,32 @@ def extract_requested_topology(prompt: str) -> Topology | None:
     return None
 
 
+def extract_requirements(prompt: str) -> dict:
+    topology = extract_requested_topology(prompt)
+    constraints = []
+
+    if "low" in prompt:
+        constraints.append("Low complexity")
+    if "scalable" in prompt or "scale" in prompt:
+        constraints.append("Scalable architecture")
+    if "dense" in prompt or "density" in prompt:
+        constraints.append("Routing density aware")
+    if "compare" in prompt or "variation" in prompt:
+        constraints.append("Compare multiple designs")
+    if not constraints:
+        constraints.append("Balanced architecture")
+
+    return {
+        "qubits": extract_qubit_count(prompt),
+        "requestedTopology": topology.title() if topology else "Auto compare",
+        "readout": "Shared resonator/readout requested"
+        if any(term in prompt for term in ["resonator", "readout", "shared"])
+        else "Dedicated readout not specified",
+        "constraints": constraints,
+        "intent": "Generate superconducting quantum chip architecture from natural language",
+    }
+
+
 def build_nodes(qubits: int, shared_resonator: bool) -> list[dict]:
     nodes = [
         {
@@ -225,6 +251,7 @@ def generate(request: PromptRequest) -> dict:
 
     return {
         "prompt": request.prompt,
+        "requirements": extract_requirements(normalized),
         "designs": designs,
         "recommendedId": recommended["id"],
         "summary": f"Generated {len(designs)} superconducting quantum chip architecture option(s).",

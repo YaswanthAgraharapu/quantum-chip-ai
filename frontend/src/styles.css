@@ -358,6 +358,60 @@ textarea:focus {
   margin-top: 18px;
 }
 
+.requirements-panel {
+  grid-column: 1 / -1;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #d8e0e7;
+  border-radius: 8px;
+}
+
+.requirements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.requirements-grid div {
+  padding: 12px;
+  background: #f8fbfc;
+  border: 1px solid #e1e7ec;
+  border-radius: 8px;
+}
+
+.requirements-grid span {
+  display: block;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.requirements-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: #172033;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.constraint-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.constraint-row span {
+  padding: 7px 10px;
+  color: #0f3f3b;
+  background: #d9f5ef;
+  border: 1px solid #9fe9dc;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -454,6 +508,10 @@ pre {
   }
 
   .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .requirements-grid {
     grid-template-columns: 1fr;
   }
 

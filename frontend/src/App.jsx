@@ -32,6 +32,26 @@ function requestedTopology(text) {
   return ["ring", "mesh", "star", "linear"].find((topology) => lower.includes(topology));
 }
 
+function extractRequirements(text) {
+  const lower = text.toLowerCase();
+  const topology = requestedTopology(text);
+  const constraints = [];
+
+  if (lower.includes("low")) constraints.push("Low complexity");
+  if (lower.includes("scalable") || lower.includes("scale")) constraints.push("Scalable architecture");
+  if (lower.includes("dense") || lower.includes("density")) constraints.push("Routing density aware");
+  if (lower.includes("compare") || lower.includes("variation")) constraints.push("Compare multiple designs");
+  if (constraints.length === 0) constraints.push("Balanced architecture");
+
+  return {
+    qubits: extractQubits(text),
+    requestedTopology: topology ? `${topology[0].toUpperCase()}${topology.slice(1)}` : "Auto compare",
+    readout: /resonator|readout|shared/i.test(text) ? "Shared resonator/readout requested" : "Dedicated readout not specified",
+    constraints,
+    intent: "Generate superconducting quantum chip architecture from natural language",
+  };
+}
+
 function localFallbackGenerate(text) {
   const qubits = extractQubits(text);
   const hasSharedResonator = /resonator|readout|shared/i.test(text);
@@ -44,6 +64,7 @@ function localFallbackGenerate(text) {
 
   return {
     prompt: text,
+    requirements: extractRequirements(text),
     designs,
     recommendedId: recommended.id,
     summary: "Generated locally because the backend is not running.",
@@ -249,6 +270,47 @@ function MetricCard({ label, value, icon }) {
   );
 }
 
+function RequirementsPanel({ result, selectedDesign }) {
+  if (!result?.requirements) return null;
+
+  return (
+    <div className="requirements-panel">
+      <div className="block-title">User Requirements Output</div>
+      <div className="requirements-grid">
+        <div>
+          <span>Prompt</span>
+          <strong>{result.prompt}</strong>
+        </div>
+        <div>
+          <span>Qubits</span>
+          <strong>{result.requirements.qubits}</strong>
+        </div>
+        <div>
+          <span>Requested topology</span>
+          <strong>{result.requirements.requestedTopology}</strong>
+        </div>
+        <div>
+          <span>Readout</span>
+          <strong>{result.requirements.readout}</strong>
+        </div>
+        <div>
+          <span>Generated variants</span>
+          <strong>{result.designs.length}</strong>
+        </div>
+        <div>
+          <span>Recommended output</span>
+          <strong>{selectedDesign?.name ?? "Pending"}</strong>
+        </div>
+      </div>
+      <div className="constraint-row">
+        {result.requirements.constraints.map((constraint) => (
+          <span key={constraint}>{constraint}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [prompt, setPrompt] = useState(starterPrompt);
   const [messages, setMessages] = useState([
@@ -295,7 +357,7 @@ export default function App() {
         ...current,
         {
           role: "assistant",
-          text: `Generated ${response.data.designs.length} design option(s). Best match: ${best?.name ?? "recommended topology"} with ${best?.metrics.efficiency ?? "--"}% efficiency.`,
+          text: `I extracted ${response.data.requirements?.qubits ?? best?.qubits ?? "--"} qubits, ${response.data.requirements?.requestedTopology ?? best?.topology ?? "auto"} topology intent, and generated ${response.data.designs.length} output design option(s). Best match: ${best?.name ?? "recommended topology"} with ${best?.metrics.efficiency ?? "--"}% efficiency.`,
         },
       ]);
       setStatus("Connected to FastAPI backend.");
@@ -308,7 +370,7 @@ export default function App() {
         ...current,
         {
           role: "assistant",
-          text: `I used the built-in local engine and recommended ${best?.name} because it scores ${best?.metrics.efficiency}% efficiency for this prompt.`,
+          text: `I extracted ${fallback.requirements.qubits} qubits, ${fallback.requirements.requestedTopology} topology intent, and ${fallback.requirements.readout.toLowerCase()}. I recommended ${best?.name} because it scores ${best?.metrics.efficiency}% efficiency.`,
         },
       ]);
       setStatus("Backend is not running, so this preview used the built-in local generator.");
@@ -443,6 +505,8 @@ export default function App() {
 
         {selectedDesign && (
           <div className="dashboard-grid">
+            <RequirementsPanel result={result} selectedDesign={selectedDesign} />
+
             <div className="metrics-grid">
               <MetricCard label="Qubits" value={selectedDesign.qubits} icon={<Cpu size={20} />} />
               <MetricCard label="Edges" value={selectedDesign.edges.length} icon={<GitCompare size={20} />} />
